@@ -1,9 +1,11 @@
+
 "use client";
 
 import {
   useEffect,
   useState,
   useCallback,
+  type SyntheticEvent,
   type ReactNode,
 } from "react";
 
@@ -67,6 +69,23 @@ function formatTime(value: string | null): string {
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
   });
+}
+
+function getAttendanceStatus(
+  attendance: Attendance | undefined
+): string {
+  if (!attendance) return "Not Checked In";
+  if (attendance.check_out) return "Completed";
+  if (attendance.status === "late") return "Checked In · Late";
+  return "Checked In · On Time";
+}
+
+function getAttendanceDescription(
+  attendance: Attendance | undefined
+): string {
+  if (!attendance) return "Don't forget to record your attendance today.";
+  if (attendance.check_out) return "Your attendance for today is complete.";
+  return "Your check-in has been recorded successfully.";
 }
 
 // ==========================================
@@ -300,7 +319,7 @@ export default function Home() {
   // LOGIN
   // ==========================================
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setError("");
@@ -421,19 +440,8 @@ export default function Home() {
     (item: Attendance) => item.attendance_date === today
   );
 
-  // Helper function to resolve intern attendance message securely
-  const getAttendanceStatusText = () => {
-    if (!todayAttendance) return "Not Checked In";
-    if (todayAttendance.check_out) return "Completed";
-    if (todayAttendance.status === "late") return "Checked In &middot; Late";
-    return "Checked In &middot; On Time";
-  };
-
-  const getAttendanceSubtext = () => {
-    if (!todayAttendance) return "Don't forget to record your attendance today.";
-    if (todayAttendance.check_out) return "Your attendance for today is complete.";
-    return "Your check-in has been recorded successfully.";
-  };
+  const attendanceStatus = getAttendanceStatus(todayAttendance);
+  const attendanceDescription = getAttendanceDescription(todayAttendance);
 
   // ==========================================
   // LOADING SCREEN
@@ -691,8 +699,8 @@ export default function Home() {
 
             <p>
               {profile.role === "admin"
-                ? "Here&apos;s what&apos;s happening with your interns today."
-                : "Ready to make today productive? Let&apos;s get started."}
+                ? "Here's what's happening with your interns today."
+                : "Ready to make today productive? Let's get started."}
             </p>
           </div>
 
@@ -864,7 +872,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* TODAY&apos;S ATTENDANCE */}
+            {/* TODAY'S ATTENDANCE */}
 
             <div className="section-heading">
               <h3>Today&apos;s Attendance</h3>
@@ -881,8 +889,9 @@ export default function Home() {
                     ATTENDANCE STATUS
                   </p>
 
-                  <h2>{getAttendanceStatusText()}</h2>
-                  <p>{getAttendanceSubtext()}</p>
+                  <h2>{attendanceStatus}</h2>
+
+                  <p>{attendanceDescription}</p>
                 </div>
 
                 <div className="status-icon">
@@ -1029,7 +1038,7 @@ export default function Home() {
         {/* FOOTER */}
 
         <footer className="dashboard-footer">
-          InternTrack &copy; 2026 &middot; Internship Attendance Management System
+          InternTrack &copy; 2026 · Internship Attendance Management System
         </footer>
       </main>
     </div>
