@@ -319,38 +319,57 @@ export default function Home() {
   // LOGIN
   // ==========================================
 
-  async function handleLogin(e: SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
 
-    setError("");
-    setSubmitting(true);
+async function handleLogin(e: SyntheticEvent<HTMLFormElement>) {
+  e.preventDefault();
 
-    try {
-      const {
-        data,
-        error: loginError,
-      } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+  console.log("[InternTrack] Login button submitted");
+  console.log("[InternTrack] Email:", email.trim());
 
-      if (loginError) {
-        throw loginError;
-      }
+  setError("");
+  setSubmitting(true);
 
-      if (data.user) {
-        await loadDashboard(data.user.id);
-      }
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Login failed. Please check your email and password."
-      );
-    } finally {
-      setSubmitting(false);
+  try {
+    console.log("[InternTrack] Connecting to Supabase Auth...");
+
+    const {
+      data,
+      error: loginError,
+    } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (loginError) {
+      console.error("[InternTrack] Auth error:", loginError);
+      throw loginError;
     }
+
+    if (!data.user) {
+      throw new Error("User authentication failed.");
+    }
+
+    console.log("[InternTrack] Authentication successful!");
+    console.log("[InternTrack] User ID:", data.user.id);
+
+    console.log("[InternTrack] Loading user profile...");
+
+    await loadDashboard(data.user.id);
+
+    console.log("[InternTrack] Profile loading completed.");
+
+  } catch (err: unknown) {
+    console.error("[InternTrack] Login failed:", err);
+
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Login failed. Please check your email and password."
+    );
+  } finally {
+    setSubmitting(false);
   }
+}
 
   // ==========================================
   // LOGOUT
